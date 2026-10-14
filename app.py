@@ -445,15 +445,13 @@ body.dark-mode .sub-q select, body.dark-mode .sub-q input { background:#0f172a; 
 </script>
 """
 
-with open("CRQ_Companion_v3.html", "r", encoding="utf-8") as f:
-    html_content = f.read()
+@st.cache_resource
+def build_portal():
+    with open("CRQ_Companion_v3.html", "r", encoding="utf-8") as f:
+        html_content = f.read()
+    html_content = html_content.replace("<body>", "<body>" + LOADER, 1)
+    html_content = html_content.replace("</body>", EXTRA + "</body>", 1)
+    encoded = base64.b64encode(html_content.encode("utf-8")).decode("utf-8")
+    return f"data:text/html;base64,{encoded}"
 
-# Inject loader right after <body>
-html_content = html_content.replace("<body>", "<body>" + LOADER, 1)
-
-# Inject all enhancements right before </body>
-html_content = html_content.replace("</body>", EXTRA + "</body>", 1)
-
-encoded = base64.b64encode(html_content.encode("utf-8")).decode("utf-8")
-data_url = f"data:text/html;base64,{encoded}"
-st.iframe(data_url, height=950)
+st.iframe(build_portal(), height=950)
