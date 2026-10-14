@@ -16,6 +16,15 @@ def check_password():
         [data-testid="stAppViewContainer"] {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
         }
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        [data-testid="stToolbar"] {visibility: hidden;}
+        [data-testid="stDecoration"] {display: none;}
+        [data-testid="stStatusWidget"] {visibility: hidden;}
+        .viewerBadge_container__r5tak {display: none !important;}
+        .viewerBadge_link__qRIco {display: none !important;}
+        #GithubIcon {display: none !important;}
         </style>
         """, unsafe_allow_html=True)
         st.markdown("<br><br>", unsafe_allow_html=True)
@@ -49,12 +58,18 @@ def check_password():
 if not check_password():
     st.stop()
 
-# Hide Streamlit chrome
+# Hide Streamlit chrome + all branding icons
 st.markdown("""
 <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
+    [data-testid="stToolbar"] {visibility: hidden;}
+    [data-testid="stDecoration"] {display: none;}
+    [data-testid="stStatusWidget"] {visibility: hidden;}
+    .viewerBadge_container__r5tak {display: none !important;}
+    .viewerBadge_link__qRIco {display: none !important;}
+    #GithubIcon {display: none !important;}
     .block-container {padding: 0 !important; max-width: 100% !important;}
     [data-testid="stAppViewContainer"] {padding: 0;}
 </style>
