@@ -1,11 +1,53 @@
 import streamlit as st
 import base64
+import hmac
 
 st.set_page_config(
     page_title="DCP Request Hub — DCP SRE",
     page_icon="🔴",
     layout="wide"
 )
+
+# ===== ACCESS CONTROL =====
+def check_password():
+    def login_form():
+        st.markdown("""
+        <style>
+        [data-testid="stAppViewContainer"] {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        col1, col2, col3 = st.columns([1, 1.2, 1])
+        with col2:
+            st.markdown("""
+            <div style='text-align:center; margin-bottom:32px;'>
+                <div style='display:inline-flex; align-items:center; gap:4px; margin-bottom:16px;'>
+                    <div style='width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#FF0000,#cc0000);'></div>
+                    <div style='width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#FF5F00,#cc4c00);margin-left:-18px;'></div>
+                </div>
+                <div style='color:#fff;font-size:22px;font-weight:900;letter-spacing:-.5px;'>DCP Request Hub</div>
+                <div style='color:rgba(255,255,255,.4);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:6px;'>DCP SRE &middot; Restricted Access</div>
+            </div>
+            """, unsafe_allow_html=True)
+            with st.form("login"):
+                st.text_input("Password", type="password", key="password", placeholder="Enter access password")
+                submitted = st.form_submit_button("Access Portal", use_container_width=True)
+                if submitted:
+                    if hmac.compare_digest(st.session_state.password, st.secrets["APP_PASSWORD"]):
+                        st.session_state.authenticated = True
+                        st.rerun()
+                    else:
+                        st.error("Incorrect password. Contact DCP SRE team for access.")
+
+    if st.session_state.get("authenticated"):
+        return True
+    login_form()
+    return False
+
+if not check_password():
+    st.stop()
 
 # Hide Streamlit chrome
 st.markdown("""
