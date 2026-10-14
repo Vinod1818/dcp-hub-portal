@@ -16,15 +16,30 @@ def check_password():
         [data-testid="stAppViewContainer"] {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
         }
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
-        [data-testid="stToolbar"] {visibility: hidden;}
-        [data-testid="stDecoration"] {display: none;}
-        [data-testid="stStatusWidget"] {visibility: hidden;}
-        .viewerBadge_container__r5tak {display: none !important;}
-        .viewerBadge_link__qRIco {display: none !important;}
-        #GithubIcon {display: none !important;}
+        /* Nuclear option — hide ALL Streamlit branding everywhere */
+        #MainMenu, footer, header,
+        [data-testid="stToolbar"],
+        [data-testid="stDecoration"],
+        [data-testid="stStatusWidget"],
+        [data-testid="stHeader"],
+        [data-testid="collapsedControl"],
+        [data-testid="stSidebarNav"],
+        .st-emotion-cache-zq5wmm,
+        .st-emotion-cache-1dp5vir,
+        .st-emotion-cache-14xtw13,
+        .st-emotion-cache-1avcm0n,
+        .viewerBadge_container__r5tak,
+        .viewerBadge_link__qRIco,
+        #GithubIcon,
+        a[href="https://streamlit.io"],
+        a[href*="github.com/streamlit"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            height: 0 !important;
+            overflow: hidden !important;
+        }
         </style>
         """, unsafe_allow_html=True)
         st.markdown("<br><br>", unsafe_allow_html=True)
@@ -58,18 +73,31 @@ def check_password():
 if not check_password():
     st.stop()
 
-# Hide Streamlit chrome + all branding icons
+# Hide ALL Streamlit chrome + branding
 st.markdown("""
 <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    [data-testid="stToolbar"] {visibility: hidden;}
-    [data-testid="stDecoration"] {display: none;}
-    [data-testid="stStatusWidget"] {visibility: hidden;}
-    .viewerBadge_container__r5tak {display: none !important;}
-    .viewerBadge_link__qRIco {display: none !important;}
-    #GithubIcon {display: none !important;}
+    #MainMenu, footer, header,
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"],
+    [data-testid="stHeader"],
+    [data-testid="collapsedControl"],
+    .st-emotion-cache-zq5wmm,
+    .st-emotion-cache-1dp5vir,
+    .st-emotion-cache-14xtw13,
+    .st-emotion-cache-1avcm0n,
+    .viewerBadge_container__r5tak,
+    .viewerBadge_link__qRIco,
+    #GithubIcon,
+    a[href="https://streamlit.io"],
+    a[href*="github.com/streamlit"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
     .block-container {padding: 0 !important; max-width: 100% !important;}
     [data-testid="stAppViewContainer"] {padding: 0;}
 </style>
