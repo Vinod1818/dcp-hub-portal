@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DCP Request Hub — DCP SRE</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f0f2f7;--card:#fff;--ink:#0f172a;--soft:#64748b;--muted:#94a3b8;
+  --mc-red:#EB001B;--mc-orange:#FF5F00;--mc-yellow:#F79E1B;
+  --blue:#2563eb;--blue-d:#1e40af;--blue-dd:#1e3a8a;--blue-l:#dbeafe;--blue-xl:#eff6ff;
+  --green:#059669;--green-d:#047857;--green-l:#d1fae5;--green-xl:#ecfdf5;
+  --red:#dc2626;--red-d:#b91c1c;--red-l:#fee2e2;--red-xl:#fef2f2;
+  --amber:#d97706;--amber-l:#fde68a;--amber-xl:#fffbeb;
+  --purple:#7c3aed;--purple-d:#6d28d9;--purple-dd:#4c1d95;--purple-l:#ddd6fe;--purple-xl:#f5f3ff;
+  --teal:#0891b2;--teal-d:#0e7490;--teal-dd:#164e63;--teal-l:#a5f3fc;--teal-xl:#ecfeff;
+  --indigo:#4f46e5;--indigo-d:#4338ca;--indigo-l:#e0e7ff;
+  --pink:#ec4899;--pink-d:#db2777;--pink-l:#fce7f3;
+  --border:#e2e8f0;--border-l:#f1f5f9;--radius:16px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 6px 20px rgba(0,0,0,.04);
+  --shadow-lg:0 4px 24px rgba(0,0,0,.08),0 1px 4px rgba(0,0,0,.04);
+  --shadow-xl:0 10px 50px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.04);
+  --shadow-glow:0 0 40px rgba(37,99,235,.08);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;display:flex;flex-direction:column;color:var(--ink);-webkit-font-smoothing:antialiased}
+
+/* ===== TOPBAR ===== */
+.topbar{display:flex;align-items:center;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);padding:0 32px;box-shadow:0 4px 30px rgba(0,0,0,.3);position:relative;z-index:100}
+.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--mc-red),var(--mc-orange),var(--mc-yellow),var(--mc-orange),var(--mc-red))}
+.topbar-logo{display:flex;align-items:center;gap:14px;padding:16px 28px 16px 0;border-right:1px solid rgba(255,255,255,.06)}
+.mc-c{width:32px;height:32px;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.mc-c.r{background:linear-gradient(135deg,#FF0000,#cc0000);opacity:.95}.mc-c.o{background:linear-gradient(135deg,#FF5F00,#cc4c00);margin-left:-13px;opacity:.95}
+.topbar-title{color:#fff;font-size:17px;font-weight:800;letter-spacing:-.5px}
+.topbar-sub{color:rgba(255,255,255,.35);font-size:10px;margin-top:2px;letter-spacing:.5px;text-transform:uppercase}
+.nav-tabs{display:flex;gap:2px;margin-left:20px;flex:1}
+.nav-tab{padding:18px 28px;color:rgba(255,255,255,.4);font-size:12.5px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;transition:all .3s;letter-spacing:.4px;white-space:nowrap;text-transform:uppercase;position:relative}
+.nav-tab:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.04)}
+.nav-tab.active{color:#fff;border-bottom-color:var(--mc-orange)}
+.nav-tab.active::after{content:'';position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);width:40px;height:3px;background:var(--mc-orange);box-shadow:0 0 12px rgba(255,95,0,.5);border-radius:2px}
+.topbar-badge{margin-left:auto;background:linear-gradient(135deg,var(--mc-red),var(--mc-orange));color:#fff;padding:6px 18px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.6px;box-shadow:0 2px 12px rgba(235,0,27,.3)}
+
+/* ===== PAGES ===== */
+.page{display:none;flex:1}.page.active{display:flex;flex-direction:column;flex:1}
+
+/* ===== HERO BANNERS ===== */
+.hero-banner{padding:36px 44px;position:relative;overflow:hidden}
+.hero-banner::before{content:'';position:absolute;inset:0;opacity:.15;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.hero-banner .hero-shapes{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.hero-banner .hs{position:absolute;border-radius:50%;opacity:.08;background:#fff}
+.hero-banner .hs-1{width:300px;height:300px;top:-100px;right:-50px}
+.hero-banner .hs-2{width:200px;height:200px;bottom:-60px;left:10%}
+.hero-banner .hs-3{width:120px;height:120px;top:20px;right:30%}
+.hero-banner h1{color:#fff;font-size:28px;font-weight:900;letter-spacing:-.8px;position:relative;z-index:1}
+.hero-banner p{color:rgba(255,255,255,.7);font-size:13px;margin-top:6px;position:relative;z-index:1;font-weight:500}
+.hero-banner.hb-red{background:linear-gradient(135deg,#991b1b 0%,#dc2626 40%,#ef4444 100%)}
+.hero-banner.hb-blue{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 40%,#60a5fa 100%)}
+.hero-banner.hb-purple{background:linear-gradient(135deg,#4c1d95 0%,#7c3aed 40%,#a78bfa 100%)}
+.hdr-right{display:flex;gap:10px;position:relative;z-index:1}
+.hdr-btn{padding:11px 24px;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .3s;letter-spacing:.3px}
+.hdr-btn.draft{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.25);backdrop-filter:blur(8px)}
+.hdr-btn.draft:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.45);transform:translateY(-1px)}
+.hdr-btn.draft:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.hdr-btn.submit{background:#fff;color:var(--mc-red);font-weight:800;box-shadow:0 2px 12px rgba(0,0,0,.1)}
+.hdr-btn.submit:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.15)}
+.hdr-btn.submit:disabled{background:rgba(255,255,255,.2);color:rgba(255,255,255,.35);cursor:not-allowed;box-shadow:none;transform:none}
+
+/* ===== PROGRESS BAR ===== */
+.progress-strip{background:#fff;padding:14px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:18px;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.progress-strip .label{font-size:10px;font-weight:800;color:var(--soft);text-transform:uppercase;letter-spacing:1px}
+.progress-track{flex:1;height:10px;background:linear-gradient(90deg,#f1f5f9,#e2e8f0);border-radius:5px;overflow:hidden}
+.progress-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--mc-red),var(--mc-orange),#facc15);transition:width .6s cubic-bezier(.4,0,.2,1);width:0%;box-shadow:inset 0 1px 2px rgba(255,255,255,.4)}
+.progress-pct{font-size:15px;font-weight:900;color:var(--ink);min-width:48px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* ===== MAIN LAYOUT ===== */
+.main-wrap{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:32px 24px 56px}
+
+/* ===== STEP CARDS ===== */
+.step-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;border:2px solid var(--border);transition:all .35s}
+.step-card.active-step{border-color:var(--blue);box-shadow:var(--shadow-lg),0 0 0 4px rgba(37,99,235,.06)}
+.step-card.completed-step{border-color:var(--green);background:linear-gradient(135deg,#fff 92%,var(--green-xl))}
+.step-card.locked-step{opacity:.4;pointer-events:none}
+.step-head{padding:20px 24px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:background .2s}
+.step-head:hover{background:#fafbfc}
+.step-num{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;flex-shrink:0;border:2.5px solid var(--border);color:var(--muted);background:#fff;transition:all .35s}
+.active-step .step-num{border-color:var(--blue);color:#fff;background:linear-gradient(135deg,var(--blue-dd),var(--blue));box-shadow:0 4px 16px rgba(37,99,235,.3)}
+.completed-step .step-num{border-color:var(--green);color:#fff;background:linear-gradient(135deg,var(--green-d),var(--green));box-shadow:0 4px 16px rgba(5,150,105,.3)}
+.step-title{font-size:15px;font-weight:700;color:var(--ink)}
+.step-subtitle{font-size:11px;color:var(--soft);margin-top:3px}
+.step-badge{margin-left:auto;padding:5px 16px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase}
+.badge-pending{background:#f1f5f9;color:var(--muted)}
+.badge-active{background:var(--blue-l);color:var(--blue)}
+.badge-done{background:var(--green-l);color:var(--green)}
+.step-body{padding:0 24px 24px;display:none}
+.step-card.active-step .step-body,.step-card.completed-step .step-body{display:block}
+.step-back{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;border:2px solid var(--border);background:#fff;color:var(--soft);font-family:inherit;transition:all .25s;margin-bottom:12px}
+.step-back:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-xl);transform:translateX(-2px)}
+.completed-step .step-head{cursor:pointer}
+.completed-step .step-head::after{content:'click to edit';font-size:9px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;opacity:.5;margin-left:8px}
+
+/* ===== OPTION BUTTONS ===== */
+.opt-grid{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px}
+.opt-btn{padding:20px 28px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;border:2.5px solid var(--border);background:#fff;color:var(--ink);transition:all .3s;position:relative;min-width:190px;overflow:hidden}
+.opt-btn::after{content:'';position:absolute;top:0;left:0;right:0;height:0;background:linear-gradient(135deg,var(--blue-xl),var(--blue-l));transition:height .3s;z-index:0}
+.opt-btn>*{position:relative;z-index:1}
+.opt-btn:hover{border-color:var(--blue);transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.opt-btn:hover::after{height:100%}
+.opt-btn.selected{border-color:var(--blue);background:linear-gradient(135deg,var(--blue-xl),var(--blue-l));color:var(--blue-d);box-shadow:0 4px 20px rgba(37,99,235,.15)}
+.opt-btn.selected::before{content:'\2713';position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;box-shadow:0 2px 8px rgba(37,99,235,.3);z-index:2}
+.opt-btn.disabled-opt{opacity:.35;cursor:not-allowed;border-style:dashed}
+.opt-btn .opt-sub{font-size:11px;font-weight:500;color:var(--soft);display:block;margin-top:5px}
+
+/* ===== MULTI-SELECT ===== */
+.chk-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.chk-item{display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:12px;border:2px solid var(--border);background:#fff;cursor:pointer;transition:all .3s;font-size:13px;font-weight:600;color:var(--ink)}
+.chk-item:hover{border-color:var(--blue);background:var(--blue-xl);transform:translateY(-2px);box-shadow:var(--shadow)}
+.chk-item.checked{border-color:var(--blue);background:linear-gradient(135deg,var(--blue-xl),var(--blue-l));color:var(--blue-d);box-shadow:0 3px 12px rgba(37,99,235,.12)}
+.chk-box{width:20px;height:20px;border-radius:6px;border:2.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;transition:all .25s;flex-shrink:0}
+.chk-item.checked .chk-box{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+
+/* ===== EVIDENCE ===== */
+.evidence-section{margin-top:16px;padding:24px;background:linear-gradient(135deg,#fafbfc,#fff);border-radius:14px;border:1.5px solid var(--border);box-shadow:inset 0 1px 3px rgba(0,0,0,.02)}
+.evidence-title{font-size:12px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.evidence-title::before{content:'';width:4px;height:20px;border-radius:2px;background:linear-gradient(180deg,var(--blue),var(--purple))}
+.ev-row{display:flex;align-items:center;gap:12px;padding:14px 18px;margin:8px 0;border-radius:12px;background:#fff;border:2px solid var(--border);transition:all .3s;box-shadow:0 1px 3px rgba(0,0,0,.02)}
+.ev-row:hover{box-shadow:var(--shadow);border-color:#cbd5e1}
+.ev-row.ev-filled{border-color:var(--green);background:linear-gradient(135deg,#fff,var(--green-xl));box-shadow:0 2px 12px rgba(5,150,105,.08)}
+.ev-label{font-size:13px;font-weight:700;color:var(--ink);min-width:180px}
+.ev-tag{padding:4px 14px;border-radius:20px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0}
+.ev-tag.pr{background:linear-gradient(135deg,var(--green-l),#a7f3d0);color:var(--green-d);border:1.5px solid #6ee7b7}
+.ev-tag.ss{background:linear-gradient(135deg,var(--red-l),#fecaca);color:var(--red);border:1.5px solid #fca5a5}
+.ev-input{flex:1;padding:10px 16px;border:2px solid var(--border);border-radius:10px;font-size:12px;font-family:inherit;outline:none;transition:all .25s;background:#fff}
+.ev-input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(37,99,235,.06)}
+.ev-input.filled{border-color:var(--green);background:var(--green-xl)}
+.ev-add-btn{padding:8px 16px;border-radius:10px;border:2px solid var(--blue);background:var(--blue-xl);color:var(--blue);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .25s}
+.ev-add-btn:hover{background:var(--blue);color:#fff;transform:translateY(-1px);box-shadow:0 2px 8px rgba(37,99,235,.2)}
+.ev-status{font-size:20px;flex-shrink:0}
+
+/* Sub-question */
+.sub-q{margin:10px 0 0;padding:16px 20px;background:linear-gradient(135deg,var(--blue-xl),#fff);border-radius:12px;border-left:4px solid var(--blue);font-size:12px;box-shadow:0 1px 6px rgba(0,0,0,.03)}
+.sub-q label{font-weight:700;color:var(--blue-d);display:block;margin-bottom:8px}
+.sub-q select,.sub-q input{padding:9px 14px;border:2px solid var(--border);border-radius:10px;font-size:12px;font-family:inherit;outline:none;transition:border-color .2s}
+.sub-q select:focus,.sub-q input:focus{border-color:var(--blue)}
+
+/* ===== SUMMARY PANEL ===== */
+.summary-panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:32px;margin-top:8px;border:2px solid var(--green-l);position:relative;overflow:hidden}
+.summary-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--green),var(--teal),var(--blue),var(--purple))}
+.summary-title{font-size:20px;font-weight:900;color:var(--ink);margin-bottom:24px;padding-bottom:14px;border-bottom:2px solid var(--border-l)}
+.sum-section{margin-bottom:18px}
+.sum-section h4{font-size:10px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sum-section h4::before{content:'';width:3px;height:14px;border-radius:2px;background:var(--blue)}
+.sum-row{display:flex;justify-content:space-between;padding:8px 0;font-size:12px;border-bottom:1px solid var(--border-l)}
+.sum-label{color:var(--soft);font-weight:500}
+.sum-value{font-weight:700;color:var(--ink);text-align:right;max-width:60%}
+.sum-tag{display:inline-block;padding:3px 12px;border-radius:10px;font-size:10px;font-weight:700}
+.sum-tag.t-pr{background:var(--green-l);color:var(--green-d)}
+.sum-tag.t-ss{background:var(--red-l);color:var(--red)}
+
+/* ==============================================================
+   WORKFLOW PAGE — Premium Visual Design
+   ============================================================== */
+.wf-wrap{max-width:1300px;margin:0 auto;padding:36px 32px 60px}
+
+/* Platform Hero Banner */
+.wf-platform{margin-bottom:56px}
+.wf-plat-hero{border-radius:20px;padding:36px 40px;position:relative;overflow:hidden;margin-bottom:32px;box-shadow:var(--shadow-xl)}
+.wf-plat-hero::before{content:'';position:absolute;inset:0;opacity:.1;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='.1'%3E%3Cpath d='M20 20l-5-5h10l-5 5zm0 0l5 5H15l5-5z'/%3E%3C/g%3E%3C/svg%3E")}
+.wf-plat-hero .wph-shapes{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.wf-plat-hero .wph-shapes span{position:absolute;border-radius:50%;background:rgba(255,255,255,.06)}
+.wf-plat-hero .wph-shapes .ws1{width:250px;height:250px;top:-80px;right:-40px}
+.wf-plat-hero .wph-shapes .ws2{width:150px;height:150px;bottom:-40px;left:15%}
+.wf-plat-hero .wph-shapes .ws3{width:80px;height:80px;top:10px;right:25%;background:rgba(255,255,255,.04)}
+.wf-plat-hero.wph-db{background:linear-gradient(135deg,#7f1d1d 0%,#dc2626 35%,#ef4444 70%,#fca5a5 100%)}
+.wf-plat-hero.wph-sf{background:linear-gradient(135deg,#134e4a 0%,#0891b2 35%,#22d3ee 70%,#a5f3fc 100%)}
+.wf-plat-hero .wph-icon{width:60px;height:60px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:2px solid rgba(255,255,255,.2);box-shadow:0 4px 16px rgba(0,0,0,.1);flex-shrink:0}
+.wf-plat-hero .wph-text{position:relative;z-index:1}
+.wf-plat-hero .wph-title{color:#fff;font-size:30px;font-weight:900;letter-spacing:-.8px}
+.wf-plat-hero .wph-sub{color:rgba(255,255,255,.7);font-size:14px;margin-top:6px;font-weight:500}
+.wf-plat-hero .wph-stats{display:flex;gap:24px;margin-top:18px;position:relative;z-index:1}
+.wph-stat{background:rgba(255,255,255,.12);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:10px 20px;text-align:center}
+.wph-stat-num{font-size:22px;font-weight:900;color:#fff}
+.wph-stat-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+/* Section headers with timeline */
+.wf-section{margin-bottom:32px;position:relative;padding-left:28px}
+.wf-section::before{content:'';position:absolute;left:12px;top:52px;bottom:0;width:3px;background:linear-gradient(180deg,var(--border) 0%,transparent 100%);border-radius:2px}
+.wf-section:last-child::before{display:none}
+.wf-sec-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;position:relative}
+.wf-sec-num{width:40px;height:40px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:var(--shadow-lg);position:relative;z-index:2;margin-left:-28px}
+.wf-sec-num.wsn-db{background:linear-gradient(135deg,var(--red-d),var(--mc-red))}
+.wf-sec-num.wsn-sf{background:linear-gradient(135deg,var(--teal-dd),var(--teal))}
+.wf-sec-title{font-size:18px;font-weight:800;color:var(--ink);letter-spacing:-.3px}
+.wf-sec-desc{font-size:12px;color:var(--soft);font-weight:500;margin-top:2px}
+
+/* Workflow Cards */
+.wf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.wf-card{background:var(--card);border-radius:18px;overflow:hidden;border:1.5px solid var(--border);box-shadow:var(--shadow);transition:all .35s;position:relative}
+.wf-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-xl)}
+.wf-card-header{padding:16px 22px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden}
+.wf-card-header::before{content:'';position:absolute;inset:0;opacity:.06;background:url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='.15'%3E%3Ccircle cx='3' cy='3' r='1.5'/%3E%3C/g%3E%3C/svg%3E")}
+.wf-card-header.wch-green{background:linear-gradient(135deg,#065f46,#059669)}
+.wf-card-header.wch-red{background:linear-gradient(135deg,#991b1b,#dc2626)}
+.wf-card-header.wch-purple{background:linear-gradient(135deg,var(--purple-dd),var(--purple))}
+.wf-card-header.wch-amber{background:linear-gradient(135deg,#92400e,var(--amber))}
+.wf-card-header.wch-teal{background:linear-gradient(135deg,var(--teal-dd),var(--teal))}
+.wf-card-header.wch-blue{background:linear-gradient(135deg,var(--blue-dd),var(--blue))}
+.wch-icon{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.1)}
+.wch-text{font-size:13px;font-weight:800;color:#fff;letter-spacing:.3px;position:relative;z-index:1}
+.wch-count{margin-left:auto;background:rgba(255,255,255,.2);color:#fff;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:800;position:relative;z-index:1}
+.wf-card-body{padding:16px 22px 20px}
+.wf-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;margin:5px 0;border-radius:10px;background:linear-gradient(135deg,#fafbfc,#f8fafc);font-size:13px;transition:all .2s;border:1.5px solid transparent}
+.wf-row:hover{background:var(--blue-xl);border-color:var(--blue-l);transform:translateX(4px)}
+.wf-row-name{font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px}
+.wf-row-name .wf-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.wf-tag{padding:4px 14px;border-radius:20px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+.wf-tag.wpr{background:linear-gradient(135deg,var(--green-l),#a7f3d0);color:var(--green-d);border:1.5px solid #6ee7b7}
+.wf-tag.wss{background:linear-gradient(135deg,var(--red-l),#fecaca);color:var(--red);border:1.5px solid #fca5a5}
+
+/* Callout notes */
+.wf-callout{display:flex;align-items:flex-start;gap:12px;padding:14px 20px;border-radius:14px;font-size:12px;margin:10px 0;line-height:1.6;font-weight:500;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.wf-callout .wfc-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:-2px}
+.wfc-blue{background:linear-gradient(135deg,var(--blue-xl),#fff);border:1.5px solid var(--blue-l);color:var(--blue-d)}.wfc-blue .wfc-icon{background:var(--blue-l)}
+.wfc-red{background:linear-gradient(135deg,var(--red-xl),#fff);border:1.5px solid #fecaca;color:var(--red-d)}.wfc-red .wfc-icon{background:var(--red-l)}
+.wfc-amber{background:linear-gradient(135deg,var(--amber-xl),#fff);border:1.5px solid var(--amber-l);color:#92400e}.wfc-amber .wfc-icon{background:var(--amber-l)}
+.wfc-green{background:linear-gradient(135deg,var(--green-xl),#fff);border:1.5px solid var(--green-l);color:var(--green-d)}.wfc-green .wfc-icon{background:var(--green-l)}
+
+/* Bottom legend */
+.wf-legend{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;padding:28px 24px;margin-top:8px;background:var(--card);border-radius:16px;box-shadow:var(--shadow);border:1.5px solid var(--border)}
+.wf-legend-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--soft)}
+.wf-legend-dot{width:10px;height:10px;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+
+/* ==============================================================
+   TEAM PAGE — Org Chart Flowchart with Connector Lines
+   ============================================================== */
+.team-wrap{max-width:1200px;margin:0 auto;padding:36px 24px 60px}
+.team-dept{background:var(--card);border-radius:24px;overflow:hidden;box-shadow:var(--shadow-xl);border:1.5px solid var(--border);margin-bottom:40px}
+
+/* Department banner */
+.dept-banner{padding:28px 36px;position:relative;overflow:hidden}
+.dept-banner::before{content:'';position:absolute;inset:0;opacity:.1;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.dept-banner .db-shapes{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.dept-banner .db-shapes span{position:absolute;border-radius:50%;background:rgba(255,255,255,.06)}
+.dept-banner .db-s1{width:200px;height:200px;top:-60px;right:-40px}
+.dept-banner .db-s2{width:100px;height:100px;bottom:-20px;left:15%}
+.dept-banner.db-blue{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 50%,#60a5fa 100%)}
+.dept-banner.db-purple{background:linear-gradient(135deg,#4c1d95 0%,#7c3aed 50%,#a78bfa 100%)}
+.dept-banner h3{color:#fff;font-size:22px;font-weight:900;letter-spacing:-.5px;position:relative;z-index:1}
+.dept-banner p{color:rgba(255,255,255,.55);font-size:12px;margin-top:3px;position:relative;z-index:1;font-weight:500}
+
+/* Org chart scroll container */
+.org-wrap{padding:40px 16px 32px;overflow-x:auto}
+
+/* ===== CSS Org Chart Tree ===== */
+.oc-tree,.oc-tree ul{list-style:none;margin:0;padding:0}
+.oc-tree{display:flex;justify-content:center}
+.oc-tree ul{display:flex;justify-content:center;padding-top:32px;position:relative}
+
+/* Vertical stem: parent down to horizontal connector bar */
+.oc-tree ul::before{content:'';position:absolute;top:0;left:50%;width:2.5px;height:32px;background:linear-gradient(180deg,#94a3b8,#cbd5e1);transform:translateX(-50%);border-radius:2px}
+
+.oc-tree li{display:flex;flex-direction:column;align-items:center;position:relative;padding:32px 8px 0}
+
+/* Horizontal connector bar across siblings */
+.oc-tree li::before,.oc-tree li::after{content:'';position:absolute;top:0;width:50%;border-top:2.5px solid #cbd5e1}
+.oc-tree li::before{left:0}
+.oc-tree li::after{left:50%}
+.oc-tree li:first-child::before{border:none}
+.oc-tree li:last-child::after{border:none}
+.oc-tree li:only-child::before,.oc-tree li:only-child::after{border:none}
+
+/* Root li: no connectors above it */
+.oc-tree > li{padding-top:0}
+.oc-tree > li::before,.oc-tree > li::after{display:none}
+
+/* Vertical drop: horizontal bar down to each child node */
+.oc-tree li li > .oc::before{content:'';position:absolute;top:-32px;left:50%;width:2.5px;height:32px;background:linear-gradient(180deg,#cbd5e1,#94a3b8);transform:translateX(-50%);border-radius:2px}
+
+/* ===== Node Base ===== */
+.oc{position:relative;text-align:center;transition:all .3s}
+.oc:hover{transform:translateY(-4px)}
+
+/* Root node — Manager / Director */
+.oc-root{background:#fff;border-radius:20px;padding:22px 32px 18px;min-width:180px;border:2.5px solid var(--border);box-shadow:var(--shadow-lg)}
+.oc-root:hover{box-shadow:var(--shadow-xl)}
+.oc-root .oc-av{width:58px;height:58px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:900;color:#fff;box-shadow:var(--shadow-lg);border:3px solid #fff;outline:3px solid var(--border)}
+.oc-root .oc-name{font-size:15px;font-weight:800;color:var(--ink)}
+.oc-root .oc-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-top:5px;padding:3px 14px;border-radius:20px;display:inline-block}
+.oc-root .oc-crown{font-size:20px;position:absolute;top:-8px;right:-8px}
+
+/* Root color variants */
+.oc-root.ocr-dark{border-color:#475569;background:linear-gradient(135deg,#fff,#f1f5f9)}
+.oc-root.ocr-dark .oc-av{background:linear-gradient(135deg,#0f172a,#334155);outline-color:#475569}
+.oc-root.ocr-dark .oc-title{background:#f1f5f9;color:var(--soft)}
+.oc-root.ocr-purple{border-color:var(--purple-l);background:linear-gradient(135deg,#fff,var(--purple-xl))}
+.oc-root.ocr-purple .oc-av{background:linear-gradient(135deg,var(--purple-dd),var(--purple));outline-color:var(--purple-l)}
+.oc-root.ocr-purple .oc-title{background:var(--purple-xl);color:var(--purple)}
+
+/* Group label node — category pill between levels */
+.oc-group{padding:10px 24px;border-radius:30px;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;border:2px solid;box-shadow:var(--shadow);white-space:nowrap}
+.oc-group.ocg-blue{background:linear-gradient(135deg,var(--blue-xl),var(--blue-l));border-color:var(--blue-l);color:var(--blue-d)}
+.oc-group.ocg-purple{background:linear-gradient(135deg,var(--purple-xl),var(--purple-l));border-color:var(--purple-l);color:var(--purple-d)}
+.oc-group.ocg-green{background:linear-gradient(135deg,var(--green-xl),var(--green-l));border-color:var(--green-l);color:var(--green-d)}
+.oc-group.ocg-indigo{background:linear-gradient(135deg,#eef2ff,var(--indigo-l));border-color:var(--indigo-l);color:var(--indigo-d)}
+.oc-group.ocg-teal{background:linear-gradient(135deg,var(--teal-xl),var(--teal-l));border-color:var(--teal-l);color:var(--teal-d)}
+
+/* Person leaf node */
+.oc-person{background:#fff;border-radius:16px;padding:16px 12px 14px;min-width:105px;max-width:125px;border:2px solid var(--border);box-shadow:var(--shadow)}
+.oc-person:hover{box-shadow:var(--shadow-lg)}
+.oc-person .oc-av{width:44px;height:44px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;box-shadow:0 3px 12px rgba(0,0,0,.15)}
+.oc-person .oc-name{font-size:11.5px;font-weight:700;color:var(--ink);line-height:1.3}
+.oc-person .oc-role{font-size:9.5px;font-weight:600;margin-top:3px}
+
+/* Person color variants */
+.oc-person.ocp-blue{border-color:var(--blue-l);background:linear-gradient(135deg,#fff,var(--blue-xl))}
+.oc-person.ocp-blue .oc-av{background:linear-gradient(135deg,var(--blue-dd),var(--blue))}
+.oc-person.ocp-blue .oc-role{color:var(--blue)}
+.oc-person.ocp-purple{border-color:var(--purple-l);background:linear-gradient(135deg,#fff,var(--purple-xl))}
+.oc-person.ocp-purple .oc-av{background:linear-gradient(135deg,var(--purple-dd),var(--purple))}
+.oc-person.ocp-purple .oc-role{color:var(--purple)}
+.oc-person.ocp-indigo{border-color:var(--indigo-l);background:linear-gradient(135deg,#fff,#eef2ff)}
+.oc-person.ocp-indigo .oc-av{background:linear-gradient(135deg,var(--indigo-d),var(--indigo))}
+.oc-person.ocp-indigo .oc-role{color:var(--indigo)}
+.oc-person.ocp-green{border-color:var(--green-l);background:linear-gradient(135deg,#fff,var(--green-xl))}
+.oc-person.ocp-green .oc-av{background:linear-gradient(135deg,var(--green-d),var(--green))}
+.oc-person.ocp-green .oc-role{color:var(--green)}
+.oc-person.ocp-green-lt{border-color:#bbf7d0;border-style:dashed;background:linear-gradient(135deg,#fff,#f0fdf4)}
+.oc-person.ocp-green-lt .oc-av{background:linear-gradient(135deg,#15803d,#22c55e)}
+.oc-person.ocp-green-lt .oc-role{color:#16a34a}
+.oc-person.ocp-teal{border-color:var(--teal-l);background:linear-gradient(135deg,#fff,var(--teal-xl))}
+.oc-person.ocp-teal .oc-av{background:linear-gradient(135deg,var(--teal-dd),var(--teal))}
+.oc-person.ocp-teal .oc-role{color:var(--teal)}
+
+/* Notice */
+.oc-notice{display:flex;align-items:center;gap:12px;padding:14px 22px;border-radius:14px;font-size:12px;font-weight:600;margin:24px auto 0;max-width:500px;background:linear-gradient(135deg,var(--amber-xl),#fff);border:2px solid var(--amber-l);color:#92400e}
+.oc-notice-icon{width:34px;height:34px;border-radius:10px;background:var(--amber-l);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+
+/* ===== FOOTER ===== */
+.footer{text-align:center;padding:20px;font-size:10px;color:var(--muted);border-top:1px solid var(--border);background:#fff;margin-top:auto;letter-spacing:.3px;font-weight:500}
+.footer span{color:var(--mc-red);font-weight:700}
+
+/* ===== TOAST ===== */
+.toast{position:fixed;bottom:28px;right:28px;padding:18px 32px;border-radius:14px;font-size:13px;font-weight:700;color:#fff;box-shadow:var(--shadow-xl);transform:translateY(80px);opacity:0;transition:all .4s cubic-bezier(.4,0,.2,1);z-index:999;backdrop-filter:blur(8px)}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.t-green{background:linear-gradient(135deg,#047857,#059669)}
+.toast.t-blue{background:linear-gradient(135deg,#1e40af,#2563eb)}
+.toast.t-red{background:linear-gradient(135deg,#b91c1c,#dc2626)}
+
+@media(max-width:768px){
+  .topbar{flex-wrap:wrap;padding:0 16px}.nav-tabs{overflow-x:auto;margin-left:0;padding:4px 0}
+  .nav-tab{padding:12px 16px;font-size:11px}.main-wrap,.wf-wrap,.team-wrap{padding:16px}
+  .hero-banner{flex-direction:column;align-items:flex-start;gap:10px;padding:24px}
+  .hdr-right{width:100%}.ev-row{flex-wrap:wrap}.ev-label{min-width:auto}
+  .wf-grid{grid-template-columns:1fr}
+  .org-wrap{padding:24px 8px}.oc-tree li{padding:24px 4px 0}.oc-tree ul{padding-top:24px}
+  .oc-tree ul::before{height:24px}.oc-tree li li > .oc::before{height:24px;top:-24px}
+  .wf-plat-hero{padding:24px}.wph-stats{flex-wrap:wrap;gap:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== TOP NAV ===== -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <div style="display:flex"><div class="mc-c r"></div><div class="mc-c o"></div></div>
+    <div><div class="topbar-title">DCP Request Hub</div><div class="topbar-sub">Your One-Stop Request Portal</div></div>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="switchTab('crq')">New CRQ</div>
+    <div class="nav-tab" onclick="switchTab('workflow')">Our Workflow</div>
+    <div class="nav-tab" onclick="switchTab('team')">Our Team</div>
+  </div>
+  <div class="topbar-badge">DCP SRE</div>
+</div>
+
+<!-- ==================== PAGE 1: NEW CRQ ==================== -->
+<div class="page active" id="page-crq">
+  <div class="hero-banner hb-red" style="display:flex;align-items:center;justify-content:space-between">
+    <div class="hero-shapes"><div class="hs hs-1"></div><div class="hs hs-2"></div><div class="hs hs-3"></div></div>
+    <div><h1>Raise a New CRQ</h1><p>Select your platform, choose what you need, and provide evidence. We'll take it from there.</p></div>
+    <div class="hdr-right">
+      <button class="hdr-btn draft" id="btn-draft" onclick="saveDraft()" disabled>Save Draft</button>
+      <button class="hdr-btn submit" id="btn-submit" onclick="submitCRQ()" disabled>Send to Team</button>
+    </div>
+  </div>
+  <div class="progress-strip">
+    <span class="label">Completion</span>
+    <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+    <span class="progress-pct" id="prog-pct">0%</span>
+  </div>
+  <div class="main-wrap">
+    <div class="step-card active-step" id="step-1"><div class="step-head" onclick="toggleStep(1)"><div class="step-num">1</div><div><div class="step-title">Select Platform</div><div class="step-subtitle">Which tool do you need a CRQ for?</div></div><span class="step-badge badge-active" id="badge-1">Current</span></div><div class="step-body"><div class="opt-grid"><div class="opt-btn" onclick="selectPlatform('databricks',this)"><span>Databricks</span><span class="opt-sub">Resource, Permissions, DAB</span></div><div class="opt-btn" onclick="selectPlatform('snowflake',this)"><span>Snowflake</span><span class="opt-sub">Interim, Schema Change</span></div><div class="opt-btn disabled-opt"><span>AWS</span><span class="opt-sub">Coming Soon</span></div></div></div></div>
+    <div class="step-card locked-step" id="step-2"><div class="step-head" onclick="toggleStep(2)"><div class="step-num">2</div><div><div class="step-title">Use Case Status</div><div class="step-subtitle">Is your use case onboarded?</div></div><span class="step-badge badge-pending" id="badge-2">Pending</span></div><div class="step-body"><div class="opt-grid"><div class="opt-btn" onclick="selectOnboarding('yes',this)"><span>Use Case Onboarded</span><span class="opt-sub">Existing registered project</span></div><div class="opt-btn" onclick="selectOnboarding('no',this)"><span>Use Case NOT Onboarded</span><span class="opt-sub">Redirects to intake form</span></div></div></div></div>
+    <div class="step-card locked-step" id="step-3"><div class="step-head" onclick="toggleStep(3)"><div class="step-num">3</div><div><div class="step-title" id="step3-title">Select Category</div><div class="step-subtitle" id="step3-sub">What do you need?</div></div><span class="step-badge badge-pending" id="badge-3">Pending</span></div><div class="step-body" id="step3-body"></div></div>
+    <div class="step-card locked-step" id="step-4"><div class="step-head" onclick="toggleStep(4)"><div class="step-num">4</div><div><div class="step-title" id="step4-title">Select Resources</div><div class="step-subtitle" id="step4-sub">Pick one or more options (multi-select enabled)</div></div><span class="step-badge badge-pending" id="badge-4">Pending</span></div><div class="step-body" id="step4-body"></div></div>
+    <div class="step-card locked-step" id="step-5"><div class="step-head" onclick="toggleStep(5)"><div class="step-num">5</div><div><div class="step-title">Provide Evidence</div><div class="step-subtitle">PRs, screenshots, and additional info required</div></div><span class="step-badge badge-pending" id="badge-5">Pending</span></div><div class="step-body" id="step5-body"></div></div>
+    <div class="step-card locked-step" id="step-6"><div class="step-head" onclick="toggleStep(6)"><div class="step-num">6</div><div><div class="step-title">Review & Submit</div><div class="step-subtitle">Verify your information and send to the team</div></div><span class="step-badge badge-pending" id="badge-6">Pending</span></div><div class="step-body" id="step6-body"></div></div>
+  </div>
+</div>
+
+<!-- ==================== PAGE 2: OUR WORKFLOW ==================== -->
+<div class="page" id="page-workflow">
+  <div class="hero-banner hb-blue" style="display:flex;align-items:center;justify-content:space-between">
+    <div class="hero-shapes"><div class="hs hs-1"></div><div class="hs hs-2"></div><div class="hs hs-3"></div></div>
+    <div><h1>Our Workflow</h1><p>Complete CRQ intake decision tree &mdash; what we need from you for each request type</p></div>
+  </div>
+  <div class="wf-wrap">
+
+    <!-- ========== DATABRICKS ========== -->
+    <div class="wf-platform">
+      <div class="wf-plat-hero wph-db">
+        <div class="wph-shapes"><span class="ws1"></span><span class="ws2"></span><span class="ws3"></span></div>
+        <div style="display:flex;align-items:center;gap:20px;position:relative;z-index:1">
+          <div class="wph-icon">D</div>
+          <div class="wph-text">
+            <div class="wph-title">Databricks</div>
+            <div class="wph-sub">Use Case Onboarded &rarr; 3 categories available</div>
+          </div>
+        </div>
+        <div class="wph-stats">
+          <div class="wph-stat"><div class="wph-stat-num">3</div><div class="wph-stat-label">Categories</div></div>
+          <div class="wph-stat"><div class="wph-stat-num">9</div><div class="wph-stat-label">Resource Types</div></div>
+          <div class="wph-stat"><div class="wph-stat-num">10</div><div class="wph-stat-label">Permission Types</div></div>
+          <div class="wph-stat"><div class="wph-stat-num">2</div><div class="wph-stat-label">DAB Options</div></div>
+        </div>
+      </div>
+
+      <!-- DB Section 1: Resource Creation -->
+      <div class="wf-section">
+        <div class="wf-sec-head">
+          <div class="wf-sec-num wsn-db">1</div>
+          <div><div class="wf-sec-title">Resource Creation</div><div class="wf-sec-desc">9 resource types &mdash; select what you need to create</div></div>
+        </div>
+        <div class="wf-grid">
+          <div class="wf-card">
+            <div class="wf-card-header wch-green"><div class="wch-icon">&#128196;</div><div class="wch-text">Requires PR</div><div class="wch-count">6 items</div></div>
+            <div class="wf-card-body">
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>Catalog</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>Schema</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-callout wfc-blue"><div class="wfc-icon">&#8627;</div><span>Managed or External? If External &rarr; provide <strong>External Location + Storage Credential</strong></span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>Volume</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-callout wfc-blue"><div class="wfc-icon">&#8627;</div><span>Managed or External? If External &rarr; provide <strong>External Location + Storage Credential</strong></span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>Instance Profile</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>Cluster Policies</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>Cluster</span><span class="wf-tag wpr">PR</span></div>
+            </div>
+          </div>
+          <div class="wf-card">
+            <div class="wf-card-header wch-red"><div class="wch-icon">&#128247;</div><div class="wch-text">Requires Screenshot</div><div class="wch-count">2 items</div></div>
+            <div class="wf-card-body">
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--red)"></span>Warehouse</span><span class="wf-tag wss">Screenshot</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--red)"></span>Serverless Policy</span><span class="wf-tag wss">Screenshot</span></div>
+            </div>
+          </div>
+          <div class="wf-card">
+            <div class="wf-card-header wch-purple"><div class="wch-icon">&#128272;</div><div class="wch-text">Service Principal</div><div class="wch-count">Conditional</div></div>
+            <div class="wf-card-body">
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--purple)"></span>Only SP</span><span class="wf-tag wss">Screenshot</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--purple)"></span>Secret Manager</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-callout wfc-blue"><div class="wfc-icon">&#9432;</div><span>Evidence type depends on SP type selected</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DB Section 2: Permissions Management -->
+      <div class="wf-section">
+        <div class="wf-sec-head">
+          <div class="wf-sec-num wsn-db">2</div>
+          <div><div class="wf-sec-title">Permissions Management</div><div class="wf-sec-desc">10 resource types &mdash; 3 compulsory gate questions</div></div>
+        </div>
+        <div class="wf-callout wfc-red" style="margin-bottom:18px"><div class="wfc-icon">&#128274;</div><span><strong>Compulsory Gate:</strong> Must answer: 1) Which resource? 2) Dataset Owner Approval 3) WS Owner Approval &mdash; <em>before proceeding</em></span></div>
+        <div class="wf-grid">
+          <div class="wf-card">
+            <div class="wf-card-header wch-green"><div class="wch-icon">&#128196;</div><div class="wch-text">Requires PR</div><div class="wch-count">7 items</div></div>
+            <div class="wf-card-body">
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>Schema</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>Volume</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>Cluster</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-callout wfc-blue"><div class="wfc-icon">&#8627;</div><span>Follow-up: Do you need any other resource along with this?</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>Cluster Policy</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>Catalog</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>ML Serving Endpoint</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>Dashboard Permissions</span><span class="wf-tag wpr">PR</span></div>
+            </div>
+          </div>
+          <div class="wf-card">
+            <div class="wf-card-header wch-red"><div class="wch-icon">&#128247;</div><div class="wch-text">Requires Screenshot</div><div class="wch-count">3 items</div></div>
+            <div class="wf-card-body">
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--red)"></span>Warehouse</span><span class="wf-tag wss">Screenshot</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--red)"></span>Serverless Policy</span><span class="wf-tag wss">Screenshot</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--red)"></span>Catalog Sharing Required</span><span class="wf-tag wss">Screenshot</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DB Section 3: DAB Deployment -->
+      <div class="wf-section">
+        <div class="wf-sec-head">
+          <div class="wf-sec-num wsn-db">3</div>
+          <div><div class="wf-sec-title">DAB Deployment</div><div class="wf-sec-desc">CI/CD automated or CD Manual with evidence</div></div>
+        </div>
+        <div class="wf-grid">
+          <div class="wf-card">
+            <div class="wf-card-header wch-green"><div class="wch-icon">&#9889;</div><div class="wch-text">CI/CD Deployment</div><div class="wch-count">2 PRs</div></div>
+            <div class="wf-card-body">
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>Consumer Context PR</span><span class="wf-tag wpr">PR &mdash; Mandatory</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--green)"></span>Application PR</span><span class="wf-tag wpr">PR &mdash; Mandatory</span></div>
+              <div class="wf-callout wfc-green"><div class="wfc-icon">&#10003;</div><span>Fully automated &mdash; 2 PRs is all we need</span></div>
+            </div>
+          </div>
+          <div class="wf-card">
+            <div class="wf-card-header wch-amber"><div class="wch-icon">&#128736;</div><div class="wch-text">CD Manual Deployment</div><div class="wch-count">2 PRs + SS</div></div>
+            <div class="wf-card-body">
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--amber)"></span>Consumer Context PR</span><span class="wf-tag wpr">PR &mdash; Mandatory</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--amber)"></span>Application PR</span><span class="wf-tag wpr">PR &mdash; Mandatory</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--amber)"></span>CD Manual Evidence</span><span class="wf-tag wss">Screenshot &mdash; Mandatory</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-callout wfc-blue" style="margin-top:16px"><div class="wfc-icon">&#128260;</div><span><strong>PR Reuse:</strong> Same PRs can be shared across Resource Creation, Permissions Management, and DAB Deployment if they cover all required information.</span></div>
+      </div>
+    </div>
+
+    <!-- ========== SNOWFLAKE ========== -->
+    <div class="wf-platform">
+      <div class="wf-plat-hero wph-sf">
+        <div class="wph-shapes"><span class="ws1"></span><span class="ws2"></span><span class="ws3"></span></div>
+        <div style="display:flex;align-items:center;gap:20px;position:relative;z-index:1">
+          <div class="wph-icon">S</div>
+          <div class="wph-text">
+            <div class="wph-title">Snowflake</div>
+            <div class="wph-sub">Use Case Onboarded &rarr; 2 categories available</div>
+          </div>
+        </div>
+        <div class="wph-stats">
+          <div class="wph-stat"><div class="wph-stat-num">2</div><div class="wph-stat-label">Categories</div></div>
+          <div class="wph-stat"><div class="wph-stat-num">7</div><div class="wph-stat-label">Schema Objects</div></div>
+          <div class="wph-stat"><div class="wph-stat-num">3</div><div class="wph-stat-label">Change Types</div></div>
+        </div>
+      </div>
+
+      <!-- SF Section 1: Interim (NiFi) -->
+      <div class="wf-section">
+        <div class="wf-sec-head">
+          <div class="wf-sec-num wsn-sf">1</div>
+          <div><div class="wf-sec-title">Interim (NiFi)</div><div class="wf-sec-desc">2 mandatory PRs required for NiFi pipeline changes</div></div>
+        </div>
+        <div class="wf-grid">
+          <div class="wf-card" style="max-width:460px">
+            <div class="wf-card-header wch-teal"><div class="wch-icon">&#128196;</div><div class="wch-text">Both PRs Mandatory</div><div class="wch-count">2 PRs</div></div>
+            <div class="wf-card-body">
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--teal)"></span>Application Repository PR</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--teal)"></span>Configuration Tracker PR</span><span class="wf-tag wpr">PR</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SF Section 2: Schema Change -->
+      <div class="wf-section">
+        <div class="wf-sec-head">
+          <div class="wf-sec-num wsn-sf">2</div>
+          <div><div class="wf-sec-title">Schema Change</div><div class="wf-sec-desc">3 sub-options: Existing Schema, New Schema, Data Sharing</div></div>
+        </div>
+        <div class="wf-grid">
+          <div class="wf-card">
+            <div class="wf-card-header wch-teal"><div class="wch-icon">&#128451;</div><div class="wch-text">A: Existing Schema</div><div class="wch-count">Multi-select</div></div>
+            <div class="wf-card-body">
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--teal)"></span>Table</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--teal)"></span>View</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--teal)"></span>Stored Procedure</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--teal)"></span>Function</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--teal)"></span>Task</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--teal)"></span>Sequence</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--teal)"></span>Stream</span><span class="wf-tag wpr">PR</span></div>
+              <div class="wf-callout wfc-green"><div class="wfc-icon">&#10003;</div><span>One PR can cover all selected objects</span></div>
+            </div>
+          </div>
+          <div class="wf-card">
+            <div class="wf-card-header wch-blue"><div class="wch-icon">&#10024;</div><div class="wch-text">B: New Schema</div><div class="wch-count">1 PR</div></div>
+            <div class="wf-card-body">
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--blue)"></span>New Schema PR</span><span class="wf-tag wpr">PR &mdash; Mandatory</span></div>
+            </div>
+            <div class="wf-card-header wch-teal" style="margin-top:0;border-top:2px solid var(--border)"><div class="wch-icon">&#128279;</div><div class="wch-text">C: Data Sharing</div><div class="wch-count">1 PR</div></div>
+            <div class="wf-card-body">
+              <div class="wf-row"><span class="wf-row-name"><span class="wf-dot" style="background:var(--teal)"></span>Outbound / Consumption PR</span><span class="wf-tag wpr">PR &mdash; Mandatory</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="wf-legend">
+      <div class="wf-legend-item"><div class="wf-legend-dot" style="background:linear-gradient(135deg,var(--green-d),var(--green))"></div>PR Required</div>
+      <div class="wf-legend-item"><div class="wf-legend-dot" style="background:linear-gradient(135deg,var(--red-d),var(--red))"></div>Screenshot Required</div>
+      <div class="wf-legend-item"><div class="wf-legend-dot" style="background:linear-gradient(135deg,var(--purple-d),var(--purple))"></div>Conditional</div>
+      <div class="wf-legend-item"><div class="wf-legend-dot" style="background:linear-gradient(135deg,var(--amber),#facc15)"></div>Manual Steps</div>
+      <div style="margin-left:8px;padding-left:16px;border-left:2px solid var(--border);font-size:12px;font-weight:600;color:var(--soft)">Same PR reusable across sections if it covers all info</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PAGE 3: OUR TEAM ==================== -->
+<div class="page" id="page-team">
+  <div class="hero-banner hb-purple" style="display:flex;align-items:center;justify-content:space-between">
+    <div class="hero-shapes"><div class="hs hs-1"></div><div class="hs hs-2"></div><div class="hs hs-3"></div></div>
+    <div><h1>Our Team</h1><p>DCP BizOps & Engineering &mdash; the people behind your CRQ requests</p></div>
+  </div>
+  <div class="team-wrap">
+
+    <!-- ===== DCP BIZOPS ORG CHART ===== -->
+    <div class="team-dept">
+      <div class="dept-banner db-blue">
+        <div class="db-shapes"><span class="db-s1"></span><span class="db-s2"></span></div>
+        <h3>DCP BizOps</h3>
+        <p>Business Operations & Governance</p>
+      </div>
+      <div class="org-wrap">
+        <ul class="oc-tree">
+          <!-- ROOT: Manager -->
+          <li>
+            <div class="oc oc-root ocr-dark">
+              <span class="oc-crown">&#128081;</span>
+              <div class="oc-av">SA</div>
+              <div class="oc-name">Shreyas Athavale</div>
+              <div class="oc-title">Manager</div>
+            </div>
+            <ul>
+              <!-- Branch 1: IST Leads -->
+              <li>
+                <div class="oc oc-group ocg-blue">IST Leads</div>
+                <ul>
+                  <li><div class="oc oc-person ocp-blue"><div class="oc-av">VU</div><div class="oc-name">Vijay Umale</div><div class="oc-role">Lead</div></div></li>
+                  <li><div class="oc oc-person ocp-blue"><div class="oc-av">VP</div><div class="oc-name">Vinod Patil</div><div class="oc-role">Lead</div></div></li>
+                </ul>
+              </li>
+              <!-- Branch 2: CST Leads & Principle -->
+              <li>
+                <div class="oc oc-group ocg-purple">CST Leads & Principle</div>
+                <ul>
+                  <li><div class="oc oc-person ocp-purple"><div class="oc-av">SO</div><div class="oc-name">Soujanya</div><div class="oc-role">Lead</div></div></li>
+                  <li><div class="oc oc-person ocp-purple"><div class="oc-av">RA</div><div class="oc-name">Ranjana</div><div class="oc-role">Lead</div></div></li>
+                  <li><div class="oc oc-person ocp-purple"><div class="oc-av">KS</div><div class="oc-name">Kirthika Sunder</div><div class="oc-role">Lead</div></div></li>
+                  <li><div class="oc oc-person ocp-indigo"><div class="oc-av">SR</div><div class="oc-name">Shashidhar Reddy</div><div class="oc-role">Principle</div></div></li>
+                </ul>
+              </li>
+              <!-- Branch 3: BizOps Engineers -->
+              <li>
+                <div class="oc oc-group ocg-green">BizOps Engineers</div>
+                <ul>
+                  <li><div class="oc oc-person ocp-green"><div class="oc-av">PD</div><div class="oc-name">Prajakta Darekar</div><div class="oc-role">Engineer 2</div></div></li>
+                  <li><div class="oc oc-person ocp-green"><div class="oc-av">MW</div><div class="oc-name">Meenakshi Waghmare</div><div class="oc-role">Engineer 2</div></div></li>
+                  <li><div class="oc oc-person ocp-green"><div class="oc-av">CG</div><div class="oc-name">Charul Gupta</div><div class="oc-role">Engineer 2</div></div></li>
+                  <li><div class="oc oc-person ocp-green-lt"><div class="oc-av">SF</div><div class="oc-name">Shriya Fale</div><div class="oc-role">Engineer 1</div></div></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== ENGINEERING ORG CHART ===== -->
+    <div class="team-dept">
+      <div class="dept-banner db-purple">
+        <div class="db-shapes"><span class="db-s1"></span><span class="db-s2"></span></div>
+        <h3>Engineering</h3>
+        <p>IST &middot; Platform Engineering</p>
+      </div>
+      <div class="org-wrap">
+        <ul class="oc-tree">
+          <!-- ROOT: Director -->
+          <li>
+            <div class="oc oc-root ocr-purple">
+              <span class="oc-crown">&#11088;</span>
+              <div class="oc-av">RK</div>
+              <div class="oc-name">Ranju Kumari</div>
+              <div class="oc-title">Director</div>
+            </div>
+            <ul>
+              <!-- Branch 1: Senior Leadership -->
+              <li>
+                <div class="oc oc-group ocg-indigo">Senior Leadership</div>
+                <ul>
+                  <li><div class="oc oc-person ocp-indigo"><div class="oc-av">DV</div><div class="oc-name">Divyesh</div><div class="oc-role">Sr. Principle</div></div></li>
+                  <li><div class="oc oc-person ocp-indigo"><div class="oc-av">KA</div><div class="oc-name">Kanika</div><div class="oc-role">Principle</div></div></li>
+                </ul>
+              </li>
+              <!-- Branch 2: Leads -->
+              <li>
+                <div class="oc oc-group ocg-teal">Leads</div>
+                <ul>
+                  <li><div class="oc oc-person ocp-teal"><div class="oc-av">PS</div><div class="oc-name">Pratik Singh</div><div class="oc-role">Lead</div></div></li>
+                  <li><div class="oc oc-person ocp-teal"><div class="oc-av">RS</div><div class="oc-name">Ravi Sharma</div><div class="oc-role">Lead</div></div></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+        <div class="oc-notice">
+          <div class="oc-notice-icon">&#9998;</div>
+          <span>More team members to be added &mdash; Engineering team list to be completed</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">&copy; DCP SRE &middot; DCP Request Hub &middot; <span>Mastercard</span> Internal Use Only</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STATE={platform:null,onboarded:null,category:null,subCategory:null,resources:[],evidence:{},approvals:{},subQuestions:{},clusterExtra:'',draftSaved:false};
+const DB_RESOURCE_CREATE={'Catalog':{ev:'pr'},'Schema':{ev:'pr',sub:'managed_external'},'Volume':{ev:'pr',sub:'managed_external'},'Instance Profile':{ev:'pr'},'Cluster Policies':{ev:'pr'},'Cluster':{ev:'pr'},'Warehouse':{ev:'ss'},'Serverless Policy':{ev:'ss'},'Service Principal':{ev:'special_sp'}};
+const DB_PERMISSIONS={'Schema':{ev:'pr'},'Volume':{ev:'pr'},'Cluster':{ev:'pr',extra:'Do you need any other resource along with this?'},'Cluster Policy':{ev:'pr'},'Catalog':{ev:'pr'},'ML Serving Endpoint':{ev:'pr'},'Dashboard Permissions':{ev:'pr'},'Warehouse':{ev:'ss'},'Serverless Policy':{ev:'ss'},'Catalog Sharing Required':{ev:'ss'}};
+const SF_EXISTING_SCHEMA=['Table','View','Stored Procedure','Function','Task','Sequence','Stream'];
+
+function switchTab(t){document.querySelectorAll('.nav-tab').forEach(n=>n.classList.remove('active'));document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));const m={crq:0,workflow:1,team:2};document.querySelectorAll('.nav-tab')[m[t]].classList.add('active');document.getElementById('page-'+t).classList.add('active')}
+
+function activateStep(n){for(let i=1;i<=6;i++){const c=document.getElementById('step-'+i),b=document.getElementById('badge-'+i);c.classList.remove('active-step','locked-step','completed-step');if(i<n){c.classList.add('completed-step');b.className='step-badge badge-done';b.textContent='Done'}else if(i===n){c.classList.add('active-step');b.className='step-badge badge-active';b.textContent='Current'}else{c.classList.add('locked-step');b.className='step-badge badge-pending';b.textContent='Pending'}}updateProgress();addBackButtons()}
+function toggleStep(n){const c=document.getElementById('step-'+n);if(c.classList.contains('locked-step'))return;if(c.classList.contains('completed-step')){goBackTo(n);return}const b=c.querySelector('.step-body');b.style.display=b.style.display==='none'?'block':(b.style.display==='block'?'none':'block')}
+function goBackTo(n){if(n===1){STATE.platform=null;STATE.onboarded=null;STATE.category=null;STATE.subCategory=null;STATE.resources=[];STATE.evidence={};STATE.approvals={};STATE.subQuestions={};STATE.clusterExtra='';document.getElementById('step-1').querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));document.getElementById('step-2').querySelector('.step-body').innerHTML='<div class="opt-grid"><div class="opt-btn" onclick="selectOnboarding(\'yes\',this)"><span>Use Case Onboarded</span><span class="opt-sub">Existing registered project</span></div><div class="opt-btn" onclick="selectOnboarding(\'no\',this)"><span>Use Case NOT Onboarded</span><span class="opt-sub">Redirects to intake form</span></div></div>';document.getElementById('step3-body').innerHTML='';document.getElementById('step4-body').innerHTML='';document.getElementById('step5-body').innerHTML='';document.getElementById('step6-body').innerHTML='';document.getElementById('btn-draft').disabled=true}if(n===2){STATE.onboarded=null;STATE.category=null;STATE.subCategory=null;STATE.resources=[];STATE.evidence={};STATE.approvals={};STATE.subQuestions={};STATE.clusterExtra='';document.getElementById('step-2').querySelector('.step-body').innerHTML='<div class="opt-grid"><div class="opt-btn" onclick="selectOnboarding(\'yes\',this)"><span>Use Case Onboarded</span><span class="opt-sub">Existing registered project</span></div><div class="opt-btn" onclick="selectOnboarding(\'no\',this)"><span>Use Case NOT Onboarded</span><span class="opt-sub">Redirects to intake form</span></div></div>';document.getElementById('step3-body').innerHTML='';document.getElementById('step4-body').innerHTML='';document.getElementById('step5-body').innerHTML='';document.getElementById('step6-body').innerHTML=''}if(n===3){STATE.category=null;STATE.subCategory=null;STATE.resources=[];STATE.evidence={};STATE.approvals={};STATE.subQuestions={};STATE.clusterExtra='';document.getElementById('step4-body').innerHTML='';document.getElementById('step5-body').innerHTML='';document.getElementById('step6-body').innerHTML='';buildStep3()}if(n===4){STATE.resources=[];STATE.evidence={};STATE.subQuestions={};STATE.clusterExtra='';document.getElementById('step5-body').innerHTML='';document.getElementById('step6-body').innerHTML='';buildStep4()}if(n===5){STATE.evidence={};document.getElementById('step6-body').innerHTML='';buildEvidenceStep()}document.getElementById('btn-submit').disabled=true;activateStep(n)}
+function addBackButtons(){for(let i=2;i<=6;i++){const card=document.getElementById('step-'+i);if(!card.classList.contains('active-step'))continue;const body=card.querySelector('.step-body');if(body.querySelector('.step-back'))continue;const btn=document.createElement('button');btn.className='step-back';btn.innerHTML='&#8592; Back';btn.onclick=function(){goBackTo(i-1)};body.insertBefore(btn,body.firstChild)}}
+
+function selectPlatform(p,el){if(p==='aws')return;STATE.platform=p;STATE.onboarded=null;STATE.category=null;STATE.subCategory=null;STATE.resources=[];STATE.evidence={};STATE.approvals={};STATE.subQuestions={};clearSelected(el);activateStep(2);document.getElementById('btn-draft').disabled=false}
+function selectOnboarding(v,el){STATE.onboarded=v;clearSelected(el);if(v==='no'){showNotOnboarded();return}buildStep3();activateStep(3)}
+function showNotOnboarded(){const b=document.getElementById('step-2').querySelector('.step-body');b.innerHTML+='<div class="evidence-section" style="margin-top:16px;border-color:var(--amber);border-width:2px;background:linear-gradient(135deg,var(--amber-xl),#fff)"><div class="evidence-title" style="color:#92400e">&#9888; Use Case Not Onboarded</div><p style="font-size:13px;color:#78350f;line-height:1.7;margin-bottom:14px">Your use case needs to be <strong>onboarded first</strong> before a CRQ can be raised.</p><p style="font-size:13px;color:#78350f;line-height:1.7;margin-bottom:16px">Please submit a <strong>W/O (Work Order)</strong> along with all the details to the <strong>DCP team</strong>. Once your use case is onboarded, come back here and select <strong>"Use Case Onboarded"</strong> to proceed.</p><div style="display:flex;gap:12px"><button class="hdr-btn submit" style="background:linear-gradient(135deg,var(--blue-d),var(--blue));color:#fff;padding:12px 24px;border-radius:12px" onclick="resetCRQ()">Start Over</button></div></div>'}
+
+function buildStep3(){const b=document.getElementById('step3-body');b.innerHTML='';if(STATE.platform==='databricks'){document.getElementById('step3-title').textContent='Select Category';document.getElementById('step3-sub').textContent='What do you need for Databricks?';b.innerHTML='<div class="opt-grid"><div class="opt-btn" onclick="selectCategory(\'resource\',this)"><span>Resource Creation</span><span class="opt-sub">Catalog, Schema, Cluster, etc.</span></div><div class="opt-btn" onclick="selectCategory(\'permissions\',this)"><span>Permissions Management</span><span class="opt-sub">Manage access on resources</span></div><div class="opt-btn" onclick="selectCategory(\'dab\',this)"><span>DAB Deployment</span><span class="opt-sub">CI/CD or CD Manual</span></div></div>'}else{document.getElementById('step3-title').textContent='Select Category';document.getElementById('step3-sub').textContent='What do you need for Snowflake?';b.innerHTML='<div class="opt-grid"><div class="opt-btn" onclick="selectCategory(\'interim\',this)"><span>Interim (NiFi)</span><span class="opt-sub">Application Repo + Config Tracker PRs</span></div><div class="opt-btn" onclick="selectCategory(\'schema_change\',this)"><span>Schema Change</span><span class="opt-sub">Existing, New, or Data Sharing</span></div></div>'}}
+function selectCategory(c,el){STATE.category=c;STATE.subCategory=null;STATE.resources=[];STATE.evidence={};STATE.approvals={};STATE.subQuestions={};clearSelected(el);const skip=buildStep4();if(!skip)activateStep(4)}
+
+function buildStep4(){const b=document.getElementById('step4-body');b.innerHTML='';const c=STATE.category;
+if(c==='resource'){document.getElementById('step4-title').textContent='Select Resources to Create';document.getElementById('step4-sub').textContent='Pick one or more (multi-select enabled)';let h='<div class="chk-grid">';Object.keys(DB_RESOURCE_CREATE).forEach(r=>{h+='<div class="chk-item" onclick="toggleResource(this,\''+r+'\')"><div class="chk-box">&#10003;</div>'+r+'</div>'});h+='</div><div id="resource-subs"></div><button class="hdr-btn submit" style="margin-top:16px;background:var(--blue);color:#fff;padding:12px 28px;border-radius:12px" onclick="confirmResources()">Confirm Selection</button>';b.innerHTML=h}
+else if(c==='permissions'){document.getElementById('step4-title').textContent='Permissions Management';document.getElementById('step4-sub').textContent='3 compulsory questions first, then select resources';let h='<div class="evidence-section" style="margin-top:0;border-color:var(--red);border-width:2px"><div class="evidence-title" style="color:var(--red)">&#9733; Compulsory &mdash; Answer Before Proceeding</div><div class="ev-row"><span class="ev-label">Dataset Owner Approval</span><input class="ev-input" id="perm-dataset" placeholder="Enter dataset owner name"></div><div class="ev-row"><span class="ev-label">Workspace (WS) Owner Approval</span><input class="ev-input" id="perm-ws" placeholder="Enter WS owner name"></div></div><p style="font-size:13px;font-weight:700;color:var(--ink);margin:18px 0 10px">Select resources to manage permissions on:</p><div class="chk-grid">';Object.keys(DB_PERMISSIONS).forEach(r=>{h+='<div class="chk-item" onclick="toggleResource(this,\''+r+'\')"><div class="chk-box">&#10003;</div>'+r+'</div>'});h+='</div><div id="resource-subs"></div><button class="hdr-btn submit" style="margin-top:16px;background:var(--blue);color:#fff;padding:12px 28px;border-radius:12px" onclick="confirmPermissions()">Confirm Selection</button>';b.innerHTML=h}
+else if(c==='dab'){document.getElementById('step4-title').textContent='DAB Deployment Type';document.getElementById('step4-sub').textContent='Which type of deployment do you need?';b.innerHTML='<div class="opt-grid"><div class="opt-btn" onclick="selectDAB(\'cicd\',this)"><span>CI/CD Deployment</span><span class="opt-sub">2 mandatory PRs</span></div><div class="opt-btn" onclick="selectDAB(\'cd_manual\',this)"><span>CD Manual Deployment</span><span class="opt-sub">2 PRs + manual screenshots</span></div></div>'}
+else if(c==='interim'){document.getElementById('step4-title').textContent='Interim (NiFi)';document.getElementById('step4-sub').textContent='2 mandatory PRs required';STATE.resources=['Application Repository PR','Configuration Tracker PR'];buildEvidenceStep();activateStep(5);return true}
+else if(c==='schema_change'){document.getElementById('step4-title').textContent='Schema Change Type';document.getElementById('step4-sub').textContent='Select what you need';b.innerHTML='<div class="opt-grid"><div class="opt-btn" onclick="selectSchemaType(\'existing\',this)"><span>Existing Schema</span><span class="opt-sub">Table, View, SP, Function, etc.</span></div><div class="opt-btn" onclick="selectSchemaType(\'new_schema\',this)"><span>New Schema</span><span class="opt-sub">Create a new schema</span></div><div class="opt-btn" onclick="selectSchemaType(\'data_sharing\',this)"><span>Data Sharing</span><span class="opt-sub">Outbound / Consumption</span></div></div>'}}
+
+function toggleResource(el,name){el.classList.toggle('checked');if(STATE.resources.includes(name))STATE.resources=STATE.resources.filter(r=>r!==name);else STATE.resources.push(name);
+const s=document.getElementById('resource-subs');if(s){let h='';STATE.resources.forEach(r=>{const cfg=(STATE.category==='resource'?DB_RESOURCE_CREATE:DB_PERMISSIONS)[r];if(cfg&&cfg.sub==='managed_external')h+='<div class="sub-q"><label>'+r+': Managed or External?</label><select onchange="handleManagedExt(\''+r+'\',this.value)"><option value="">Select...</option><option value="Managed">Managed</option><option value="External">External</option></select><div id="ext-fields-'+r.replace(/\s/g,'_')+'" style="margin-top:8px;display:none"><input class="ev-input" style="margin:4px 0" placeholder="External Location" onchange="STATE.subQuestions[\''+r+'\'].extLocation=this.value"><input class="ev-input" style="margin:4px 0" placeholder="Storage Credential" onchange="STATE.subQuestions[\''+r+'\'].storageCredential=this.value"></div></div>';if(r==='Service Principal'&&STATE.category==='resource')h+='<div class="sub-q"><label>Service Principal Type</label><select onchange="STATE.subCategory=this.value;STATE.subQuestions[\'Service Principal\']={question:\'SP Type\',answer:this.value}"><option value="">Select...</option><option value="only_sp">Only SP (Screenshot)</option><option value="secret_manager">Secret Manager (PR)</option></select></div>';if(cfg&&cfg.extra)h+='<div class="sub-q"><label>'+cfg.extra+'</label><input class="ev-input" placeholder="Enter details..." onchange="STATE.clusterExtra=this.value"></div>'});s.innerHTML=h}updateProgress()}
+function handleManagedExt(r,v){STATE.subQuestions[r]={question:'Managed or External?',answer:v};const d=document.getElementById('ext-fields-'+r.replace(/\s/g,'_'));if(d)d.style.display=v==='External'?'block':'none'}
+
+function confirmResources(){if(STATE.resources.length===0){showToast('Please select at least one resource','t-red');return}buildEvidenceStep();activateStep(5)}
+function confirmPermissions(){const d=document.getElementById('perm-dataset').value.trim(),w=document.getElementById('perm-ws').value.trim();if(!d||!w){showToast('Dataset Owner and WS Owner approvals are mandatory','t-red');return}if(STATE.resources.length===0){showToast('Please select at least one resource','t-red');return}STATE.approvals={datasetOwner:d,wsOwner:w};buildEvidenceStep();activateStep(5)}
+function selectDAB(t,el){STATE.subCategory=t;clearSelected(el);STATE.resources=t==='cicd'?['Consumer Context PR','Application PR']:['Consumer Context PR','Application PR','CD Manual Screenshots'];buildEvidenceStep();activateStep(5)}
+function selectSchemaType(t,el){STATE.subCategory=t;clearSelected(el);if(t==='existing'){document.getElementById('step4-body').innerHTML='<p style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Select objects to create (multi-select):</p><div class="chk-grid">'+SF_EXISTING_SCHEMA.map(o=>'<div class="chk-item" onclick="toggleResource(this,\''+o+'\')"><div class="chk-box">&#10003;</div>'+o+'</div>').join('')+'</div><div class="wf-callout wfc-green" style="margin-top:14px"><div class="wfc-icon">&#10003;</div><span>One PR can cover all selected objects</span></div><button class="hdr-btn submit" style="margin-top:16px;background:var(--blue);color:#fff;padding:12px 28px;border-radius:12px" onclick="confirmSFExisting()">Confirm Selection</button>'}else if(t==='new_schema'){STATE.resources=['New Schema PR'];buildEvidenceStep();activateStep(5)}else{STATE.resources=['Outbound / Consumption PR'];buildEvidenceStep();activateStep(5)}}
+function confirmSFExisting(){if(STATE.resources.length===0){showToast('Please select at least one object','t-red');return}buildEvidenceStep();activateStep(5)}
+
+function buildEvidenceStep(){const b=document.getElementById('step5-body');let h='<div class="evidence-section" style="margin-top:0"><div class="evidence-title">Provide Evidence for Selected Items</div>';STATE.resources.forEach(r=>{const et=getEvidenceType(r),tag=et==='pr'?'<span class="ev-tag pr">PR Required</span>':'<span class="ev-tag ss">Screenshot</span>',ph=et==='pr'?'Paste PR link...':'Describe screenshot / attach reference...',id='ev-'+r.replace(/[^a-zA-Z0-9]/g,'_');STATE.evidence[r]={type:et,values:[],filled:false};h+='<div class="ev-row" id="row-'+id+'"><span class="ev-label">'+r+'</span>'+tag+'<input class="ev-input" id="'+id+'" placeholder="'+ph+'" oninput="onEvidenceInput(\''+r+'\',\''+id+'\')">'+(et==='pr'?'<button class="ev-add-btn" onclick="addExtraPR(\''+r+'\',\''+id+'\')">+ Add PR</button>':'')+'<span class="ev-status" id="status-'+id+'"></span></div><div id="extra-'+id+'"></div>'});h+='</div>';b.innerHTML=h}
+function getEvidenceType(r){if(['Consumer Context PR','Application PR','New Schema PR','Outbound / Consumption PR','Application Repository PR','Configuration Tracker PR'].includes(r))return'pr';if(r==='CD Manual Screenshots')return'ss';if(SF_EXISTING_SCHEMA.includes(r))return'pr';if(STATE.category==='resource'){const c=DB_RESOURCE_CREATE[r];if(!c)return'pr';if(c.ev==='special_sp')return STATE.subQuestions['Service Principal']&&STATE.subQuestions['Service Principal'].answer==='only_sp'?'ss':'pr';return c.ev}if(STATE.category==='permissions'){const c=DB_PERMISSIONS[r];return c?c.ev:'pr'}return'pr'}
+function onEvidenceInput(r,id){const v=document.getElementById(id).value.trim();STATE.evidence[r].filled=v.length>0;if(v.length>0)STATE.evidence[r].values=[v];const row=document.getElementById('row-'+id),st=document.getElementById('status-'+id),inp=document.getElementById(id);if(v.length>0){row.classList.add('ev-filled');inp.classList.add('filled');st.textContent='\u2705'}else{row.classList.remove('ev-filled');inp.classList.remove('filled');st.textContent=''}updateProgress();checkAllFilled()}
+let extraPRCount={};function addExtraPR(r,id){if(!extraPRCount[r])extraPRCount[r]=0;extraPRCount[r]++;const c=document.getElementById('extra-'+id),nid=id+'_x_'+extraPRCount[r],d=document.createElement('div');d.className='ev-row';d.style.marginLeft='24px';d.innerHTML='<span class="ev-label" style="color:var(--soft);font-size:11px">Additional PR #'+extraPRCount[r]+'</span><span class="ev-tag pr">PR</span><input class="ev-input" id="'+nid+'" placeholder="Paste additional PR link..." oninput="onExtraPRInput(\''+r+'\',\''+nid+'\')">';c.appendChild(d)}
+function onExtraPRInput(r,id){const v=document.getElementById(id).value.trim();if(v&&!STATE.evidence[r].values.includes(v))STATE.evidence[r].values.push(v)}
+function checkAllFilled(){if(Object.values(STATE.evidence).every(e=>e.filled)&&STATE.resources.length>0){buildReviewStep();activateStep(6)}}
+
+function buildReviewStep(){const b=document.getElementById('step6-body');let h='<div class="summary-panel"><div class="summary-title">CRQ Summary &mdash; Ready for Review</div>';h+='<div class="sum-section"><h4>Platform & Category</h4><div class="sum-row"><span class="sum-label">Platform</span><span class="sum-value">'+(STATE.platform==='databricks'?'Databricks':'Snowflake')+'</span></div><div class="sum-row"><span class="sum-label">Category</span><span class="sum-value">'+formatCategory(STATE.category)+'</span></div>';if(STATE.subCategory)h+='<div class="sum-row"><span class="sum-label">Sub-type</span><span class="sum-value">'+STATE.subCategory.replace(/_/g,' ').toUpperCase()+'</span></div>';h+='</div>';
+if(STATE.approvals.datasetOwner)h+='<div class="sum-section"><h4>Approvals</h4><div class="sum-row"><span class="sum-label">Dataset Owner</span><span class="sum-value">'+STATE.approvals.datasetOwner+'</span></div><div class="sum-row"><span class="sum-label">WS Owner</span><span class="sum-value">'+STATE.approvals.wsOwner+'</span></div></div>';
+h+='<div class="sum-section"><h4>Selected Resources</h4>';STATE.resources.forEach(r=>{const e=STATE.evidence[r],t=e&&e.type==='pr'?'<span class="sum-tag t-pr">PR</span>':'<span class="sum-tag t-ss">Screenshot</span>';h+='<div class="sum-row"><span class="sum-label">'+r+'</span><span class="sum-value">'+t+'</span></div>'});h+='</div>';
+h+='<div class="sum-section"><h4>Evidence Provided</h4>';STATE.resources.forEach(r=>{const e=STATE.evidence[r];if(e&&e.values.length>0)e.values.forEach((v,i)=>{h+='<div class="sum-row"><span class="sum-label">'+r+(e.values.length>1?' #'+(i+1):'')+'</span><span class="sum-value" style="font-size:11px;word-break:break-all">'+v+'</span></div>'})});h+='</div>';
+const sk=Object.keys(STATE.subQuestions);if(sk.length>0){h+='<div class="sum-section"><h4>Additional Details</h4>';sk.forEach(k=>{const s=STATE.subQuestions[k];h+='<div class="sum-row"><span class="sum-label">'+k+': '+s.question+'</span><span class="sum-value">'+((s.answer||'\u2014')+(s.extLocation?'<br>Loc: '+s.extLocation:'')+(s.storageCredential?'<br>Cred: '+s.storageCredential:''))+'</span></div>'});h+='</div>'}
+if(STATE.clusterExtra)h+='<div class="sum-section"><h4>Cluster Additional</h4><div class="sum-row"><span class="sum-label">Extra resource</span><span class="sum-value">'+STATE.clusterExtra+'</span></div></div>';
+h+='</div><div style="display:flex;gap:14px;margin-top:24px"><button class="hdr-btn submit" style="background:linear-gradient(135deg,var(--green-d),var(--green));color:#fff;flex:1;padding:14px;border-radius:14px;font-size:14px" onclick="sendToTeams()">Send to Teams Channel</button><button class="hdr-btn submit" style="background:linear-gradient(135deg,var(--blue-d),var(--blue));color:#fff;flex:1;padding:14px;border-radius:14px;font-size:14px" onclick="sendToEmail()">Send via Email</button></div>';b.innerHTML=h;document.getElementById('btn-submit').disabled=false}
+
+function updateProgress(){let t=5,d=0;if(STATE.platform)d++;if(STATE.onboarded==='yes')d++;if(STATE.category)d++;if(STATE.resources.length>0)d++;const ef=Object.values(STATE.evidence).filter(e=>e.filled).length,et=Object.keys(STATE.evidence).length;if(et>0&&ef===et)d++;const p=Math.round(d/t*100);document.getElementById('prog-fill').style.width=p+'%';document.getElementById('prog-pct').textContent=p+'%'}
+function clearSelected(el){el.parentElement.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected')}
+function formatCategory(c){return{resource:'Resource Creation',permissions:'Permissions Management',dab:'DAB Deployment',interim:'Interim (NiFi)',schema_change:'Schema Change'}[c]||c}
+function showToast(m,c){const t=document.getElementById('toast');t.textContent=m;t.className='toast '+c+' show';setTimeout(()=>t.classList.remove('show'),3000)}
+function saveDraft(){try{localStorage.setItem('crq_draft',JSON.stringify(STATE))}catch(e){}showToast('Draft saved! Come back anytime to continue.','t-blue');STATE.draftSaved=true}
+function loadDraft(){try{const d=localStorage.getItem('crq_draft');if(d){const p=JSON.parse(d);if(p.platform)showToast('Draft found! Resuming previous session.','t-blue')}}catch(e){}}
+function submitCRQ(){if(!Object.values(STATE.evidence).every(e=>e.filled)||STATE.resources.length===0){showToast('Complete all mandatory fields before submitting','t-red');return}buildReviewStep();activateStep(6)}
+function sendToTeams(){showToast('CRQ sent to Teams channel!','t-green');try{localStorage.removeItem('crq_draft')}catch(e){}showSuccessState('Teams Channel')}
+function sendToEmail(){showToast('CRQ sent via email!','t-green');try{localStorage.removeItem('crq_draft')}catch(e){}showSuccessState('Email')}
+function showSuccessState(method){const b=document.getElementById('step6-body');b.innerHTML='<div style="text-align:center;padding:48px 24px"><div style="font-size:56px;margin-bottom:16px">&#9989;</div><div style="font-size:22px;font-weight:900;color:var(--ink);margin-bottom:8px">CRQ Submitted Successfully!</div><p style="font-size:14px;color:var(--soft);margin-bottom:8px">Sent via <strong>'+method+'</strong> &mdash; the DCP SRE team will review your request shortly.</p><p style="font-size:12px;color:var(--muted);margin-bottom:32px">'+formatCategory(STATE.category)+' &bull; '+(STATE.platform==='databricks'?'Databricks':'Snowflake')+' &bull; '+STATE.resources.length+' resource(s)</p><button class="hdr-btn submit" style="background:linear-gradient(135deg,var(--blue-d),var(--blue));color:#fff;padding:14px 40px;border-radius:14px;font-size:15px" onclick="resetCRQ()">Submit Another CRQ</button></div>'}
+function resetCRQ(){STATE.platform=null;STATE.onboarded=null;STATE.category=null;STATE.subCategory=null;STATE.resources=[];STATE.evidence={};STATE.approvals={};STATE.subQuestions={};STATE.clusterExtra='';STATE.draftSaved=false;extraPRCount={};document.getElementById('step-2').querySelector('.step-body').innerHTML='<div class="opt-grid"><div class="opt-btn" onclick="selectOnboarding(\'yes\',this)"><span>Use Case Onboarded</span><span class="opt-sub">Existing registered project</span></div><div class="opt-btn" onclick="selectOnboarding(\'no\',this)"><span>Use Case NOT Onboarded</span><span class="opt-sub">Redirects to intake form</span></div></div>';document.getElementById('step3-body').innerHTML='';document.getElementById('step4-body').innerHTML='';document.getElementById('step5-body').innerHTML='';document.getElementById('step6-body').innerHTML='';document.querySelectorAll('#step-1 .opt-btn').forEach(b=>b.classList.remove('selected'));document.getElementById('btn-draft').disabled=true;document.getElementById('btn-submit').disabled=true;activateStep(1);document.getElementById('prog-fill').style.width='0%';document.getElementById('prog-pct').textContent='0%'}
+loadDraft();
+</script>
+</body>
+</html>
